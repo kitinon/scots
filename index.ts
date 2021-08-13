@@ -3,16 +3,17 @@ import { bootStrap, Controller, Get, Res} from "./core"
 @Controller('/')
 class MyController {
   @Get()
-  getHello(@Res() res) {
+  hello(@Res() res) {
     res.send('Hello, world!')
   }
 }
 
 @Controller('/cat')
 class CatController {
+  genus: string = 'felis'
   @Get()
-  getHello(@Res() res) {
-    res.send('Meow')
+  hello(@Res() res) {
+    res.send(`Meow (${this.genus})`)
   }
 }
 
