@@ -1,4 +1,4 @@
-// core/index.js
+// core/index.ts
 
 import "reflect-metadata"
 import express from "express"
@@ -33,6 +33,7 @@ export function Req() {
     Reflect.defineMetadata(reqPosMetadataKey, parameterIndex, target, propertyKey)
   }
 }
+
 export function bootStrap(DecoratedControllers) {
   let app = express()
   for (let ctrl of DecoratedControllers) {
