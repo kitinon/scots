@@ -2,7 +2,6 @@
 
 import "reflect-metadata"
 import express from "express"
-import { type } from "os"
 
 const reqPosMetadataKey = Symbol("reqPos")
 const resPosMetadataKey = Symbol("resPos")
