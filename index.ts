@@ -3,7 +3,7 @@ import { bootStrap, Controller, Get, Res} from "./core"
 @Controller('/api')
 class MyController {
   @Get()
-  getHello(@Res() res: any) {
+  getHello(@Res() res) {
     res.send('Hello, World!')
   }
 }
