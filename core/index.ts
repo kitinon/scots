@@ -3,58 +3,60 @@
 import "reflect-metadata"
 import express from "express"
 
-const reqPosMetadataKey = Symbol("reqPos")
-const resPosMetadataKey = Symbol("resPos")
-const getPathMetadataKey = Symbol("getPath")
-const prefixMetaDataKey = Symbol("prefix")
+const REQ_POS_KEY = Symbol("reqPos")
+const RES_POS_KEY = Symbol("resPos")
+const GET_PATH_KEY = Symbol("getPath")
+const PREFIX_KEY = Symbol("prefix")
 
 export function Controller(prefix? : string) {
   if (!prefix) prefix = '/'
   return (target: Function) => {
-    Reflect.defineMetadata(prefixMetaDataKey, prefix, target)
+    Reflect.defineMetadata(PREFIX_KEY, prefix, target)
   }
 }
 
 export function Get(path? : string) {
   if (!path) path = '/'
   return (target, propertyKey: string, descriptor: PropertyDescriptor) => {
-    Reflect.defineMetadata(getPathMetadataKey, path, target, propertyKey)
+    Reflect.defineMetadata(GET_PATH_KEY, path, target, propertyKey)
   }
 }
 
 export function Res() {
   return (target: Object, propertyKey: string, parameterIndex: number) => {
-    Reflect.defineMetadata(resPosMetadataKey, parameterIndex, target, propertyKey)
+    Reflect.defineMetadata(RES_POS_KEY, parameterIndex, target, propertyKey)
   }
 }
 
 export function Req() {
   return (target: Object, propertyKey: string, parameterIndex: number) => {
-    Reflect.defineMetadata(reqPosMetadataKey, parameterIndex, target, propertyKey)
+    Reflect.defineMetadata(REQ_POS_KEY, parameterIndex, target, propertyKey)
   }
 }
 
-export function bootStrap(DecoratedControllers) {
+type Constructor = {new (...args: any[]): any}
+
+export function bootStrap(DecoratedControllers: Constructor[]) {
   let app = express()
-  for (let ctrl of DecoratedControllers) {
-    let prefix = Reflect.getMetadata(prefixMetaDataKey, ctrl)
-    let P = ctrl.prototype
-    let c = new ctrl()
-    let r = express.Router()
-    for (let pk of Object.getOwnPropertyNames(P)) {
-      let getPath = Reflect.getMetadata(getPathMetadataKey, P, pk)
+  for (let Ctrl of DecoratedControllers) {
+    let prefix = Reflect.getMetadata(PREFIX_KEY, Ctrl)
+    let proto = Ctrl.prototype
+    let ctrl = new Ctrl()
+    let router = express.Router()
+    for (let prop of Object.getOwnPropertyNames(proto)) {
+      let getPath = Reflect.getMetadata(GET_PATH_KEY, proto, prop)
       if (getPath) {
-        r.get(getPath, (req, res) => {
+        let reqPos = Reflect.getMetadata(REQ_POS_KEY, proto, prop)
+        let resPos = Reflect.getMetadata(RES_POS_KEY, proto, prop)
+        router.get(getPath, (req, res) => {
           let params = []
-          let reqPos = Reflect.getMetadata(reqPosMetadataKey, P, pk)
           if (typeof reqPos === 'number') params[reqPos] = req
-          let resPos = Reflect.getMetadata(resPosMetadataKey, P, pk)
           if (typeof resPos === 'number') params[resPos] = res
-          c[pk](...params)
+          ctrl[prop](...params)
         })
       }
     }
-    app.use(prefix, r)
+    app.use(prefix, router)
   }
   return app
 }

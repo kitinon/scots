@@ -11,6 +11,12 @@ class MyController {
 @Controller('/cat')
 class CatController {
   genus: string = 'felis'
+  color: string
+
+  constructor(color:string) {
+    this.color = color
+  }
+
   @Get()
   hello(@Res() res) {
     res.send(`Meow (${this.genus})`)
